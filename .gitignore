@@ -7,7 +7,7 @@ node_modules/
 
 # Local invoice store. On a deployed host this lives on a mounted volume
 # (PAYDESK_DATA_DIR), never in the image.
-data/
+/data/
 
 .DS_Store
 *.log
