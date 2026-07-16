@@ -1,0 +1,27 @@
+{
+  "name": "paydesk",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Get paid globally, keep more of it. An A2MCP agent service for cross-border freelance invoicing and payout routing.",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "start": "tsx src/server.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.111.0",
+    "@modelcontextprotocol/sdk": "^1.20.0",
+    "express": "^5.1.0",
+    "tsx": "^4.20.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.0"
+  }
+}

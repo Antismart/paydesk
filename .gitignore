@@ -1,0 +1,13 @@
+node_modules/
+
+# Secrets. .env holds a live Anthropic key and the OKX pay credentials.
+.env
+.env.*
+!.env.example
+
+# Local invoice store. On a deployed host this lives on a mounted volume
+# (PAYDESK_DATA_DIR), never in the image.
+data/
+
+.DS_Store
+*.log
