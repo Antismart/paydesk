@@ -1,0 +1,77 @@
+{
+  "_meta": {
+    "label": "Estimates based on published fee schedules, July 2026. Not quotes. PayDesk does not move funds.",
+    "curated_on": "2026-07-16",
+    "source_note": "Hand-curated from publicly published provider fee schedules and World Bank Remittance Prices Worldwide corridor averages. Figures are typical, not guaranteed."
+  },
+  "rails": [
+    {
+      "id": "usdc_base",
+      "name": "USDC on Base",
+      "kind": "stablecoin",
+      "fee_pct": 0.0,
+      "fee_flat_usd": 0.01,
+      "arrival": "under 2 minutes",
+      "caveats": [
+        "Client must be able to send stablecoin",
+        "Off-ramp to local currency may add 0.5-2%"
+      ]
+    },
+    {
+      "id": "usdt_xlayer",
+      "name": "USDT on XLayer",
+      "kind": "stablecoin",
+      "fee_pct": 0.0,
+      "fee_flat_usd": 0.01,
+      "arrival": "under 2 minutes",
+      "caveats": [
+        "Client must be able to send stablecoin",
+        "Native settlement rail for OKX.AI agent payments"
+      ]
+    },
+    {
+      "id": "swift_wire",
+      "name": "International bank wire (SWIFT)",
+      "kind": "traditional",
+      "fee_pct": 0.01,
+      "fee_flat_usd": 35.0,
+      "arrival": "2-5 business days",
+      "caveats": [
+        "Sender and intermediary banks may each deduct a fee",
+        "FX applied at bank spread, typically 1-3% over mid-market"
+      ]
+    },
+    {
+      "id": "remittance_corridor",
+      "name": "Remittance provider",
+      "kind": "traditional",
+      "fee_pct": 0.062,
+      "fee_flat_usd": 0.0,
+      "arrival": "same day to 2 business days",
+      "caveats": [
+        "Corridor-dependent; fee shown is a typical blended average",
+        "Advertised rate often excludes FX spread"
+      ]
+    },
+    {
+      "id": "paypal_intl",
+      "name": "PayPal cross-border",
+      "kind": "traditional",
+      "fee_pct": 0.0499,
+      "fee_flat_usd": 0.49,
+      "arrival": "instant to 1 business day",
+      "caveats": [
+        "Additional 3-4% currency conversion spread on withdrawal",
+        "Holds and reversals possible"
+      ]
+    }
+  ],
+  "corridors": {
+    "US-KE": { "note": "US to Kenya", "remittance_fee_pct_override": 0.071 },
+    "US-NG": { "note": "US to Nigeria", "remittance_fee_pct_override": 0.068 },
+    "US-IN": { "note": "US to India", "remittance_fee_pct_override": 0.044 },
+    "US-PH": { "note": "US to Philippines", "remittance_fee_pct_override": 0.052 },
+    "EU-KE": { "note": "Eurozone to Kenya", "remittance_fee_pct_override": 0.079 },
+    "EU-NG": { "note": "Eurozone to Nigeria", "remittance_fee_pct_override": 0.074 }
+  }
+}
