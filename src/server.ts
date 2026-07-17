@@ -107,10 +107,12 @@ function buildServer(caller: string) {
         };
       }
 
-      const [used, invoice_number] = await Promise.all([
-        store.usageCount(caller),
-        store.nextInvoiceNumber(),
-      ]);
+      // Kept sequential on purpose: both touch the same JSON store file, and
+      // nextInvoiceNumber writes it. Running them concurrently races a read
+      // against that write. They are local and fast, so there is nothing to gain
+      // — the latency win is in the two model calls below, which are independent.
+      const used = await store.usageCount(caller);
+      const invoice_number = await store.nextInvoiceNumber();
       const id = randomUUID();
 
       // The two model calls are independent: the invoice text does not depend on
@@ -290,6 +292,20 @@ app.post("/mcp", async (req, res) => {
   });
   await server.connect(transport);
   await transport.handleRequest(req, res, req.body);
+});
+
+// Never let a stray async error take the whole endpoint down silently. A
+// marketplace review that hits an unreachable service reads it as a failed
+// agent (this bit us once already). Log the reason so it is visible in the
+// host's logs; keep serving on an isolated rejection, restart on a truly
+// uncaught fault so the host brings back a clean process.
+process.on("unhandledRejection", (reason) => {
+  console.error("[paydesk] unhandledRejection:", reason);
+});
+process.on("uncaughtException", (err) => {
+  console.error("[paydesk] uncaughtException:", err);
+  // The process state is undefined after this — exit and let the host restart.
+  process.exit(1);
 });
 
 app.listen(PORT, () => {
