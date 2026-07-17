@@ -308,7 +308,20 @@ process.on("uncaughtException", (err) => {
   process.exit(1);
 });
 
-app.listen(PORT, () => {
+const httpServer = app.listen(PORT, () => {
   console.log(`PayDesk A2MCP listening on :${PORT}`);
   console.log(`Invoice links will be minted as ${PUBLIC_URL}/i/<id>`);
 });
+
+// A host retiring an old container sends SIGTERM. Without this, the signal
+// kills the process outright, the runner reports a non-zero exit, and the
+// host reads a routine redeploy as a crash. Close the listener, let in-flight
+// requests finish, and exit 0 so a clean shutdown looks like one.
+for (const signal of ["SIGTERM", "SIGINT"] as const) {
+  process.on(signal, () => {
+    console.log(`[paydesk] ${signal} received, shutting down`);
+    httpServer.close(() => process.exit(0));
+    // Don't hang forever on a wedged connection.
+    setTimeout(() => process.exit(0), 10_000).unref();
+  });
+}
