@@ -10,7 +10,12 @@ import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 
+// Default model for the agents that write longer-form prose (collections,
+// ledger). The invoice-path agents override this with FAST_MODEL: they run
+// synchronously in front of a marketplace caller, so wall-clock is the
+// constraint, not prose depth.
 export const MODEL = "claude-sonnet-5";
+export const FAST_MODEL = "claude-haiku-4-5";
 
 export const client = new Anthropic();
 
@@ -20,7 +25,8 @@ type Effort = "low" | "medium" | "high";
  * One call, one schema, one validated object back.
  *
  * Effort is per-agent: these run behind a paid per-call endpoint, so thinking
- * depth is a direct margin decision, not a default to inherit.
+ * depth is a direct margin decision, not a default to inherit. `model` is per-
+ * agent too — latency-sensitive agents on the request path pass FAST_MODEL.
  */
 export async function ask<T extends z.ZodType>(opts: {
   system: string;
@@ -28,13 +34,16 @@ export async function ask<T extends z.ZodType>(opts: {
   schema: T;
   effort?: Effort;
   maxTokens?: number;
+  model?: string;
 }): Promise<z.infer<T>> {
   const res = await client.messages.parse({
-    model: MODEL,
+    model: opts.model ?? MODEL,
     max_tokens: opts.maxTokens ?? 4096,
     system: opts.system,
     output_config: {
-      effort: opts.effort ?? "low",
+      // `effort` is only supported by the extended-thinking models (Sonnet/Opus).
+      // Fast models (Haiku) reject it, so send it only when a caller asks for it.
+      ...(opts.effort ? { effort: opts.effort } : {}),
       format: zodOutputFormat(opts.schema),
     },
     messages: [{ role: "user", content: opts.user }],

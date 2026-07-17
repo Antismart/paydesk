@@ -85,8 +85,11 @@ function buildServer(caller: string) {
         };
       }
 
-      // Spec section 4: ambiguous intake asks one question, never guesses.
-      if (parsed.clarifying_question || parsed.amount == null || !parsed.client_name) {
+      // Spec section 4: ambiguous intake asks one question, never guesses — but
+      // only the truly required fields block. amount and client_name are the
+      // minimum needed to draft an invoice; client_email is optional (a link is
+      // produced regardless), so a missing email must not stall the invoice.
+      if (parsed.amount == null || !parsed.client_name) {
         return {
           content: [
             {
@@ -104,19 +107,26 @@ function buildServer(caller: string) {
         };
       }
 
-      const used = await store.usageCount(caller);
-      const invoice_number = await store.nextInvoiceNumber();
+      const [used, invoice_number] = await Promise.all([
+        store.usageCount(caller),
+        store.nextInvoiceNumber(),
+      ]);
       const id = randomUUID();
 
-      const comparison = await compareRoutes({
+      // The two model calls are independent: the invoice text does not depend on
+      // the route comparison. Overlap them (routeRationale after its comparison,
+      // invoiceText alongside) so wall-clock is one call deep, not three.
+      const routesTask = compareRoutes({
         amount: parsed.amount,
         currency: parsed.currency,
         payer_country: args.payer_country,
         payee_country: args.payee_country,
-      });
-      const rationale = await routeRationale(comparison);
+      }).then(async (comparison) => ({
+        comparison,
+        rationale: await routeRationale(comparison),
+      }));
 
-      const text = await invoiceText({
+      const textTask = invoiceText({
         client_name: parsed.client_name,
         amount: parsed.amount,
         currency: parsed.currency,
@@ -124,6 +134,8 @@ function buildServer(caller: string) {
         stablecoin_address: PAYOUT_STABLECOIN_ADDRESS,
         bank_details: PAYOUT_BANK_DETAILS,
       });
+
+      const [{ comparison, rationale }, text] = await Promise.all([routesTask, textTask]);
 
       const invoice = await store.save({
         id,

@@ -9,6 +9,7 @@
 
 import {
   ask,
+  FAST_MODEL,
   IntakeSchema,
   InvoiceTextSchema,
   RouteNarrativeSchema,
@@ -20,7 +21,7 @@ import type { RouteComparison } from "../routes-engine.js";
 export async function intake(request: string) {
   return ask({
     schema: IntakeSchema,
-    effort: "low",
+    model: FAST_MODEL,
     system: `You parse freelancer invoicing requests into structured data.
 
 Never invent an amount, an email address, or a client name. If the request does
@@ -46,7 +47,7 @@ export async function invoiceText(input: {
 }) {
   return ask({
     schema: InvoiceTextSchema,
-    effort: "low",
+    model: FAST_MODEL,
     system: `You write the client-facing text on a professional invoice.
 
 Tone: professional, warm, no jargon. Never give legal or tax advice. Write
@@ -63,7 +64,7 @@ footer note to one or two sentences.`,
 export async function routeRationale(comparison: RouteComparison) {
   const { rationale } = await ask({
     schema: RouteNarrativeSchema,
-    effort: "low",
+    model: FAST_MODEL,
     system: `You explain a payout-route recommendation to a freelancer in one or
 two sentences.
 
